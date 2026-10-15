@@ -44,7 +44,7 @@ Bu servis, `CommentView` widget'ı üzerinden çağrıldı ve `CommentView`, `Ma
 
 **Sonuç:** Başarılı. Offset `0x0344A0` civarında, ham ASCII metin olarak şu görüldü:
 
-![Hardcoded API Key Hex](https://hizliresim.com/7itrkwma)
+![Hardcoded API Key](https://i.hizliresim.com/7itrkwma.png)
 
 ```
 ...MergeUp sk_live_51Hc8xN2eZvKYlo9P3mWqR7tXaB init:SIZE RenderSliv...
@@ -52,7 +52,7 @@ Bu servis, `CommentView` widget'ı üzerinden çağrıldı ve `CommentView`, `Ma
 
 **Neden bu çalıştı:** jadx'in Hex View özelliği, dosyayı yorumlamaya veya decompile etmeye çalışmadan, ham byte'ları ve onların ASCII karşılığını doğrudan gösteriyor. Bu, dosyanın içindeki her türlü düz metni, üzerinde bir decompiler mantığı çalışmadan görmeyi sağlıyor.
 
-## Kök Sebep Analizi
+## Sebep Analizi
 
 Dart AOT compiler, string literal'leri (`"sk_live_..."` gibi sabit metinleri) **hiçbir şifreleme veya obfuscation uygulamadan**, düz ASCII baytlar halinde native binary'nin içine yazıyor. Derleyici kodu optimize ediyor ama veriyi gizlemiyor. Varsayılan `flutter build apk --release` komutu bu konuda herhangi bir koruma sağlamıyor.
 
@@ -63,16 +63,10 @@ Bir saldırgan, Play Store'dan veya herhangi bir kaynaktan indirdiği bir APK'y�
 2. `lib/` klasöründeki `.so` dosyalarını
 3. Hex View üzerinden basitçe tarayarak
 
-içine gömülü API key, token, secret gibi hassas verileri doğrudan okuyabilir. Bu, jadx'in decompile özelliğinin "bir şey bulamaması" güvenlik garantisi sağlamadığını gösteriyor, çünkü Flutter uygulamalarında asıl veri başka bir katmanda (native binary) saklanıyor ve aynı aracın farklı bir özelliğiyle (Hex View) hâlâ erişilebilir.
+içine gömülü API key, token, secret gibi hassas verileri doğrudan okuyabilir.
 
-## Mitigasyon Önerileri
 
-1. **Hiçbir hassas veriyi client-side kodda hardcode etme.** Bu, tek gerçek çözüm.
-2. **`--obfuscate --split-debug-info=<dizin>` flag'lerini kullan.** Bu, sembol isimlerini anlamsızlaştırır ve analizi zorlaştırır, ancak string literal'leri gizlemez; tam koruma değildir.
-3. **Gerçek secret'lar için backend-mediated authentication kullan.** Yani token/key hiçbir zaman client'a gönderilmesin, backend arka planda doğrulama yapsın.
-4. **Runtime'da secret çekme** (örneğin güvenli bir backend endpoint'inden, kullanıcı oturum açtıktan sonra) client-side hardcode'a göre çok daha güvenli bir yaklaşımdır.
-
-## Genel Değerlendirme
+---
 
 Bu çalışma, Flutter uygulamalarında klasik Android analiz refleksinin (jadx ile classes.dex'e bakmak) neden yetersiz kaldığını ve asıl verinin native binary katmanında saklandığını gösterdi. Aynı aracın (jadx) farklı bir özelliği (Hex View) kullanılarak, decompile edilemeyen bir dosyanın içindeki düz metin verinin hâlâ nasıl kolayca okunabildiği gözlemlendi.
 
